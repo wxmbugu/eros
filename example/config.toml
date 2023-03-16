@@ -1,0 +1,13 @@
+app = "example"
+
+[servers.alpha]
+targets = ["tcp-echo.fly.dev:5001", "tcp-echo.fly.dev:5002"]
+ports = [5001, 5200, 5300, 5400]
+
+[servers.beta]
+targets = ["tcp-echo.fly.dev:6001", "tcp-echo.fly.dev:6002"]
+port = [6001, 6200, 6300, 6400]
+
+[servers.omega]
+targets = ["tcp-echo.fly.dev:7001", "tcp-echo.fly.dev:7002"]
+ports = [7001, 7200, 7300, 7400]
