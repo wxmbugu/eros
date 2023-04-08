@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::{
     net::{TcpStream, ToSocketAddrs},
     time::Duration,
@@ -7,7 +5,7 @@ use std::{
 
 #[derive(Debug)]
 pub struct Loadbalancer {
-    currentserver: i32,
+    currentserver: usize,
     pub servers: Vec<String>,
 }
 
@@ -24,30 +22,18 @@ impl Loadbalancer {
         }
     }
 
-    fn selectserver(&mut self) -> String {
-        let mut backend = String::new();
-        if !self.servers.is_empty() {
-            backend = self
-                .servers
-                .get(self.currentserver as usize / self.servers.len())
-                .unwrap()
-                .to_owned();
-            self.currentserver += 1
-        } else {
-            println!("DEBUG:No available servers");
+    pub fn selectserver(&mut self) -> Option<String> {
+        if self.servers.is_empty() {
+            return None;
         }
-        backend
+        let backend = self.servers.get(self.currentserver).unwrap().to_owned();
+        self.currentserver += 1;
+        Some(backend)
     }
 }
 
 fn healthcheck(uri: &String) -> bool {
     let rr = uri.to_socket_addrs().unwrap().next();
     let result = TcpStream::connect_timeout(&rr.unwrap(), Duration::new(20, 0));
-    match result {
-        Ok(_) => true,
-        Err(_) => {
-            println!("DEBUG:unhealthy server");
-            false
-        }
-    }
+    result.is_ok()
 }
