@@ -3,20 +3,20 @@ use std::collections::HashMap;
 
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Config {
     pub app: String,
     pub servers: Option<HashMap<String, Server>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Server {
     pub targets: Option<Vec<String>>,
     pub ports: Option<Vec<i32>>,
 }
 
 impl Config {
-    fn watcher() {
+    pub fn watcher() {
         unimplemented!()
     }
 }
