@@ -11,3 +11,4 @@ serde = { version = "1.0.152", features = ["derive"] }
 notify = "5.1.0"
 libbpf-rs = "0.20"
 tokio = { version = "1", features = ["rt", "net"] }
+syscalls = { version = "0.6.12", features = ["x86_64"] }
