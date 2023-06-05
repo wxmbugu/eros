@@ -10,5 +10,6 @@ toml = "0.7.1"
 serde = { version = "1.0.152", features = ["derive"] }
 notify = "5.1.0"
 libbpf-rs = "0.20"
-tokio = { version = "1", features = ["rt", "net"] }
+tokio = { version = "1", features = ["rt", "net", "full"] }
 syscalls = { version = "0.6.12", features = ["x86_64"] }
+procfs = "0.15.1"

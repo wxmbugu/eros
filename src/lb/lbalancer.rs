@@ -10,7 +10,7 @@ pub struct Loadbalancer {
 }
 
 impl Loadbalancer {
-    pub fn new(servers: Vec<String>) -> Self {
+    pub fn new(servers: &[String]) -> Self {
         let servers = servers
             .iter()
             .filter(|x| healthcheck(x))
@@ -21,7 +21,6 @@ impl Loadbalancer {
             currentserver: 0,
         }
     }
-
     pub fn selectserver(&mut self) -> Option<String> {
         if self.servers.is_empty() {
             return None;

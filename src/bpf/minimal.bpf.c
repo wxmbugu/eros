@@ -28,7 +28,6 @@ int proxy_dispatch(struct bpf_sk_lookup *ctx) {
   if (!sk)
     return SK_DROP;
   long err = bpf_sk_assign(ctx, sk, 0);
-  bpf_sk_release(sk); // Release the reference held by sk
-
+  bpf_sk_release(sk);
   return err ? SK_DROP : SK_PASS;
 }

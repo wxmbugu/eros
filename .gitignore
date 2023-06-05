@@ -1,4 +1,3 @@
 /target
-bpf.txt
-thoughts.txt
-todo.txt
+minimal.bpf.o
+todos.txt
