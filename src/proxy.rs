@@ -6,21 +6,22 @@ use tokio::{
     io::{self, AsyncWriteExt},
     net::TcpStream as tokiostream,
 };
-#[derive(Debug)]
-struct Proxy {
-    con: String,
+#[derive(Debug, Clone)]
+pub struct Proxy {
     lb: Loadbalancer,
-    config: Config,
 }
 
 impl Proxy {
-    fn new(config: Config, servers: &[String]) -> Self {
-        let con = String::new();
-        let lb = Loadbalancer::new(servers);
-        Proxy { con, lb, config }
+    pub fn new(lb: Loadbalancer) -> Self {
+        Proxy { lb }
     }
-    async fn proxy(mut self, inbound: tokiostream) -> Result<()> {
-        let server_ip_addr = self.lb.selectserver().unwrap().to_socket_addrs().unwrap();
+    async fn proxy(&mut self, inbound: tokiostream, port: u16) -> Result<()> {
+        let server_ip_addr = self
+            .lb
+            .selectserver(port)
+            .unwrap()
+            .to_socket_addrs()
+            .unwrap();
         let ipv4_addresses: Vec<_> = server_ip_addr.filter(|addr| addr.is_ipv4()).collect();
         let ipv4 = ipv4_addresses.first().unwrap().to_string();
         if let Ok(outbound) = tokiostream::connect(ipv4).await {
@@ -32,6 +33,17 @@ impl Proxy {
             }
         };
         Ok(())
+    }
+    pub async fn handlestream(&mut self, mut stream: tokiostream) {
+        let port = stream.local_addr().unwrap().port();
+        if let Some(_server) = match_ports_server(port, &self.lb.config) {
+            self.proxy(stream, port).await.unwrap();
+        } else {
+            stream
+                .write_all(b"no proxying on this port\n")
+                .await
+                .unwrap();
+        }
     }
 }
 
@@ -56,24 +68,12 @@ pub fn match_ports_server(port: u16, config: &Config) -> Option<String> {
     }
     None
 }
-pub async fn handlestream(mut stream: tokiostream, config: &Config) {
-    if let Some(server) = match_ports_server(stream.local_addr().unwrap().port(), config) {
-        let servers = config.servers.as_ref().unwrap().get(&server).unwrap();
-        let proxy = Proxy::new(config.clone(), servers.targets.as_ref().unwrap());
-        proxy.proxy(stream).await.unwrap();
-    } else {
-        stream
-            .write_all(b"no proxying on this port\n")
-            .await
-            .unwrap();
-    }
-}
 
 async fn proxy_stream(mut inbound: tokiostream, mut outbound: tokiostream) -> Result<()> {
     println!(
-        "proxying from =  {:?}, to ={:?}",
-        inbound.peer_addr(),
-        outbound.peer_addr()
+        "proxying from =  {:?}, to = {:?}",
+        inbound.peer_addr().unwrap(),
+        outbound.peer_addr().unwrap()
     );
     let (mut ro, mut wo) = outbound.split();
     let (mut ri, mut wi) = inbound.split();
